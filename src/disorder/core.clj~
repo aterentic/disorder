@@ -1,0 +1,24 @@
+(ns disorder.core)
+
+(use 'overtone.core)
+
+(connect-external-server 57110)
+
+(demo 7 (lpf (mix (saw [50 (line 100 1600 5) 101 100.5]))
+                  (lin-lin (lf-tri (line 8 20 5)) -1 1 400 4000)))
+
+(definst kick [freq 440 width 0.2 
+                         attack 0.3 sustain 4 release 0.3 
+                         vol 0.4] 
+  (* (env-gen (lin attack sustain release) 1 1 0 1 FREE)
+     (sin-osc (+ freq (* 20 (lf-pulse:kr 0.5 0 width))))
+     vol))
+
+(def one-twenty-bpm (metronome 120))
+
+(defn looper [nome sound]    
+    (let [beat (nome)]
+        (at (nome beat) (sound))
+        (apply-by (nome (inc beat)) looper nome sound [])))
+
+(looper one-twenty-bpm kick)
