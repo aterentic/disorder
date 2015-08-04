@@ -24,8 +24,6 @@
 
 ;(kick)
 
-(def hat (cycle [0 1 0 1]))
-
 (definst c-hat [amp 0.8 t 0.03]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
         noise (white-noise)
@@ -71,23 +69,37 @@
 
 
 (def metro60 (metronome 60))
+
 (def metro (metronome 120))
 
+(defn one [seq]
+  (first seq))
 
-(defn player [beat]
-  (at (metro beat) (kick))
-  (at (metro (+ 0 beat)) (if (= 0 (first hat)) (c-hat) (o-hat)))
-  (at (metro (+ 0.5 beat)) (if (= 0 (second hat)) (c-hat) (o-hat)))
-  (at (metro (+ 0.25 beat)) (if (= 0 (first (rest (rest hat)))) (c-hat) (o-hat)))
-  (at (metro (+ 0.75 beat)) (if (= 0 (first (rest (rest (rest hat))))) (c-hat) (o-hat)))
-  (apply-by (metro (inc beat)) #'player (inc beat) []))
+(defn two [seq]
+  (first (rest seq)))
+
+(defn three [seq]
+  (first (drop 2 seq)))
+
+(defn four [seq]
+  (first (drop 3 seq)))
+
+(def hat (cycle [0 0 1 0 1 0 1 0 1 1 0]))
+
+(defn player [beat seq]
+    (at (metro beat) (kick))
+    (at (metro (+ 0 beat)) (if (= 0 (one seq)) (c-hat) (o-hat)))
+    (at (metro (+ 0.25 beat)) (if (= 0 (two seq)) (c-hat) (o-hat)))
+    (at (metro (+ 0.5 beat)) (if (= 0 (three seq)) (c-hat) (o-hat)))
+    (at (metro (+ 0.75 beat)) (if (= 0 (four seq)) (c-hat) (o-hat)))
+    (apply-by (metro (inc beat)) #'player (inc beat) (drop 4 seq) []))
 
 (defn player60 [beat]
   (at (metro60 (+ 1 beat)) (fx))
   (apply-by (metro60 (inc beat)) #'player60 (inc beat) []))
 
 
-(player (metro))
+(player (metro) hat)
 (player60 (metro60))
 
 (def one-twenty-bpm (metronome 120))
